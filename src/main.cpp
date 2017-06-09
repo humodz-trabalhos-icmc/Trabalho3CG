@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <cstdio>
 #include <math.h>
 #include <GL/glut.h>
@@ -28,7 +29,7 @@ GLdouble lookZ = 0.0;
 int up = 1;
 
 // Parametrização em coordenadas esféricas
-GLdouble r = 2;		 // Distância do entre o observador (camera) e o ponto 
+GLdouble r = 2;		 // Distância do entre o observador (camera) e o ponto
 GLdouble theta = 0.0;	 // valores entre 0 a 2pi
 GLdouble phi   = 0.0; // valores entre 0 a pi
 
@@ -81,11 +82,22 @@ void onDisplay()
 			1.0,     // distancia minima da origem(camera) para o pixel poder ser desenhado
 			1000.0); // distancia maxima da origem(camera) para o pixel poder ser desenhado
 
+
+	double upx, upy, upz;
+
+	double phi_up = phi + M_PI/2;
+
+	upx = sin(phi_up)*cos(theta);
+	upy = sin(phi_up)*sin(theta);
+	upz = cos(phi_up);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi),    lookX, lookY, lookZ,		0, 0 , up	);
-	//      							xyz camera								xyz onde olhar   	xyz "para cima"
-   
+    gluLookAt(
+			r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi), // camera
+			lookX, lookY, lookZ, // alvo
+			upx, upy , upz); // vetor up
+
     //printf("theta = %f\n", theta);
     //printf("phi   = %f\n", phi);
     /*printf("x     = %f\n", r*sin(phi)*cos(theta));
@@ -94,7 +106,7 @@ void onDisplay()
 	*/
 
 
-	glLineWidth(1); 
+	glLineWidth(1);
 	glColor3f(1.0, 0.0, 0.0);
 	glBegin(GL_LINES);
 		glVertex3f(-100.0, 0.0, 0.0);
@@ -187,10 +199,10 @@ void onMouseMove(int x, int y)
 
 	if(true)
 	{
-		
+
 		printf("THETA = %f\n", theta);
 		printf("PHI   = %f\n", phi);
-		
+
 		theta_old = theta;
 		phi_old = phi;
 
@@ -204,7 +216,7 @@ void onMouseMove(int x, int y)
 			up *= -1;
 
 		if ((phi_old - 2*M_PI) * (phi - 2*M_PI) < 0)
-			up *= -1;			
+			up *= -1;
 
 		theta = fmod(theta, 2 * M_PI);
 		phi = fmod(phi, 2 * M_PI);
