@@ -2,12 +2,14 @@
 #include <cstdio>
 #include <math.h>
 #include <GL/glut.h>
+#include "Vector3d.h"
 
 
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+const GLdouble ASPECT = (GLdouble) WINDOW_WIDTH / WINDOW_HEIGHT;
 const int CENTER_X = WINDOW_WIDTH / 2;
 const int CENTER_Y = WINDOW_HEIGHT / 2;
 
@@ -20,23 +22,18 @@ void onDisplay();
 void onMouseClick(int button, int state, int x, int y);
 void onMouseMove(int x, int y);
 
-
-// Posicao onde a camera foca
-GLdouble lookX = 0.0;
-GLdouble lookY = 0.0;
-GLdouble lookZ = 0.0;
-
-int up = 1;
-
 // Parametrização em coordenadas esféricas
-GLdouble r = 2;		 // Distância do entre o observador (camera) e o ponto
-GLdouble theta = 0.0;	 // valores entre 0 a 2pi
-GLdouble phi   = 0.0; // valores entre 0 a pi
+GLdouble r = 5; // Distância do entre o observador (camera) e o ponto
+GLdouble theta = 0.0; // Angulo em torno do eixo Y
+GLdouble phi   = 0.0; // Angulo em torno do eixo X relativo a camera
 
-// Estado do mouse
-bool is_pressed = false;
-int mouseX = CENTER_X;
-int mouseY = CENTER_Y;
+GLdouble turn_speed = 0.5;
+GLdouble move_speed = 0.1;
+GLdouble move_direction = 0;
+
+Vector3d player = {0, 0, 0};
+
+
 
 int main(int argc, char **argv)
 {
@@ -47,11 +44,16 @@ int main(int argc, char **argv)
 	glutCreateWindow("Trabalho 3");
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
 	glutTimerFunc(FRAME_TIME, onTimerTick, 0);
 	glutDisplayFunc(onDisplay);
+
+	glutSetCursor(GLUT_CURSOR_NONE);
 	glutMouseFunc(onMouseClick);
 	glutMotionFunc(onMouseMove);
+	glutPassiveMotionFunc(onMouseMove);
+
 	glutMainLoop();
 
 	return 0;
@@ -73,34 +75,31 @@ void onDisplay()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	// Parte 1: desenha os cubos no "mundo" 3d
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(
-			60.0,     // angulo vertical de abertura
-			(double) WINDOW_WIDTH / WINDOW_HEIGHT, // aspecto (proporcao largura/altura)
-			1.0,     // distancia minima da origem(camera) para o pixel poder ser desenhado
-			1000.0); // distancia maxima da origem(camera) para o pixel poder ser desenhado
+    gluPerspective(60.0, ASPECT, 1.0, 100.0);
 
-
-	double upx, upy, upz;
 
 	double phi_up = phi + M_PI/2;
 
-	upx = sin(phi_up)*cos(theta);
-	upy = sin(phi_up)*sin(theta);
-	upz = cos(phi_up);
+	// Desloca o jogador (move_direction pode ser 0)
+	player += move_direction * coords(-move_speed, theta, phi);
+
+	// Calcula vetores da camera
+	Vector3d cam_pos = coords(r, theta, phi) + player;
+	Vector3d cam_up  = coords(r, theta, phi_up);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(
-			r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi), // camera
-			lookX, lookY, lookZ, // alvo
-			upx, upy , upz); // vetor up
+			cam_pos.x, cam_pos.y, cam_pos.z,
+			player.x, player.y, player.z,
+			cam_up.x, cam_up.y , cam_up.z);
 
-    //printf("theta = %f\n", theta);
-    //printf("phi   = %f\n", phi);
-    /*printf("x     = %f\n", r*sin(phi)*cos(theta));
+    /*
+	printf("theta = %f\n", theta);
+    printf("phi   = %f\n", phi);
+    printf("x     = %f\n", r*sin(phi)*cos(theta));
 	printf("y     = %f\n", r*sin(phi)*sin(theta));
     printf("z     = %f\n", r*cos(theta));
 	*/
@@ -135,41 +134,16 @@ void onDisplay()
 
 
 	// Desenha o cubo azul na posicao em que a camera esta olhando
-	glClear(GL_DEPTH_BUFFER_BIT); // Pra fazer ele sempre ser desenhado por cima do cubo vermelho
-	glTranslatef(lookX, lookY, lookZ);
+	glTranslatef(player.x, player.y, player.z);
 
 	glColor3f(0.0f, 0.0f, 0.0f);
-	glutWireCube(0.1);
+	glutWireCube(0.5);
 
 	glColor3f(0.0f, 0.0f, 1.0f);
-	glutSolidCube(0.1);
-
-
-
-	// Parte 2: desenha o quadrado verde na posicao do mouse
-	// Se botar esse trecho antes da parte 1, o cubinho azul eh
-	// desenhado por cima do quadrado verde, mas o vermelho nao;
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, WINDOW_WIDTH, 0.0, WINDOW_HEIGHT);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-	glBegin(GL_QUADS);
-	{
-		glColor3f(0.0f, 1.0f, 0.0f);
-		glVertex2f(mouseX + 10, mouseY + 10);
-		glVertex2f(mouseX - 10, mouseY + 10);
-		glVertex2f(mouseX - 10, mouseY - 10);
-		glVertex2f(mouseX + 10, mouseY - 10);
-	}
-	glEnd();
-
+	glutSolidCube(0.5);
 
 	glutSwapBuffers();
 }
-
 
 
 void onMouseClick(int button, int state, int x, int y)
@@ -179,62 +153,39 @@ void onMouseClick(int button, int state, int x, int y)
 
 	if(button == GLUT_LEFT_BUTTON)
 	{
-		//printf("%d\n", (state == GLUT_DOWN));
-		fflush(stdout);
-		is_pressed = (state == GLUT_DOWN);
-
-		mouseX = x;
-		mouseY = WINDOW_HEIGHT - y;
+		// Anda para frente
+		move_direction = 1.0 * (state == GLUT_DOWN);
+	}
+	else if(button == GLUT_RIGHT_BUTTON)
+	{
+		// Anda para tras
+		move_direction = (-1.0) * (state == GLUT_DOWN);
 	}
 }
 
 void onMouseMove(int x, int y)
 {
+	int centerX = WINDOW_WIDTH / 2;
+	int centerY = WINDOW_HEIGHT / 2;
+
+	// Converte a partir das coordenadas do dispositivo
 	y = WINDOW_HEIGHT - y;
 
-	int deltaX = x - mouseX;
-	int deltaY = y - mouseY;
-	GLdouble theta_old;
-	GLdouble phi_old;
+	int deltaX = x - centerX;
+	int deltaY = y - centerY;
 
-	if(true)
+	printf("THETA = %f\n", theta);
+	printf("PHI   = %f\n", phi);
+
+	theta -= turn_speed * deltaX * (2*M_PI / WINDOW_WIDTH);
+	phi   -= turn_speed * deltaY * (2*M_PI / WINDOW_HEIGHT);
+
+	theta = fmod(theta, 2 * M_PI);
+	phi = fmod(phi, 2 * M_PI);
+
+	// Mantem o cursor no centro da tela
+	if(x != centerX || y != centerY)
 	{
-
-		printf("THETA = %f\n", theta);
-		printf("PHI   = %f\n", phi);
-
-		theta_old = theta;
-		phi_old = phi;
-
-		theta += (double)(deltaX * (2*M_PI / WINDOW_WIDTH));
-		phi   += (double)(deltaY * (2*M_PI / WINDOW_HEIGHT));
-
-		if (phi_old * phi < 0)
-			up *= -1;
-
-		if ((phi_old - M_PI) * (phi - M_PI) < 0)
-			up *= -1;
-
-		if ((phi_old - 2*M_PI) * (phi - 2*M_PI) < 0)
-			up *= -1;
-
-		theta = fmod(theta, 2 * M_PI);
-		phi = fmod(phi, 2 * M_PI);
-
-		if (phi < 0)
-			phi += 2*M_PI;
-
-		/*if (theta > (2*M_PI))
-			theta -= 2*M_PI;
-		else if (theta < 0)
-			theta += 2*M_PI;
-
-		if (phi > (2*M_PI))
-			phi -= 2*M_PI;
-		else if (phi < 0)
-			phi += 2*M_PI;*/
+		glutWarpPointer(centerX, centerY);
 	}
-
-	mouseX += deltaX;
-	mouseY += deltaY;
 }
