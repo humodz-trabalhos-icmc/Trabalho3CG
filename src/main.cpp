@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <math.h>
 #include <GL/glut.h>
 
 
@@ -23,6 +24,13 @@ void onMouseMove(int x, int y);
 GLdouble lookX = 0.0;
 GLdouble lookY = 0.0;
 GLdouble lookZ = 0.0;
+
+int up = 1;
+
+// Parametrização em coordenadas esféricas
+GLdouble r = 2;		 // Distância do entre o observador (camera) e o ponto 
+GLdouble theta = 0.0;	 // valores entre 0 a 2pi
+GLdouble phi   = 0.0; // valores entre 0 a pi
 
 // Estado do mouse
 bool is_pressed = false;
@@ -75,8 +83,35 @@ void onDisplay()
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(2, 2, 2,    lookX, lookY, lookZ,    0, 1 ,0);
-	//      xyz camera      xyz onde olhar      xyz "para cima"
+    gluLookAt(r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi),    lookX, lookY, lookZ,		0, 0 , up	);
+	//      							xyz camera								xyz onde olhar   	xyz "para cima"
+   
+    //printf("theta = %f\n", theta);
+    //printf("phi   = %f\n", phi);
+    /*printf("x     = %f\n", r*sin(phi)*cos(theta));
+	printf("y     = %f\n", r*sin(phi)*sin(theta));
+    printf("z     = %f\n", r*cos(theta));
+	*/
+
+
+	glLineWidth(1); 
+	glColor3f(1.0, 0.0, 0.0);
+	glBegin(GL_LINES);
+		glVertex3f(-100.0, 0.0, 0.0);
+		glVertex3f(100, 0, 0);
+	glEnd();
+
+	glColor3f(0.0, 1.0, 0.0);
+	glBegin(GL_LINES);
+		glVertex3f(0.0, -100.0, 0.0);
+		glVertex3f(0.0, 100.0, 0);
+	glEnd();
+
+	glColor3f(0.0, 0.0, 1.0);
+	glBegin(GL_LINES);
+		glVertex3f(0.0, 0.0, -100.0);
+		glVertex3f(0.0, 0.0, 100.0);
+	glEnd();
 
 
 	// Desenha o cubo vermelho de tamanho 1, na posicao (0, 0, 0)
@@ -132,7 +167,7 @@ void onMouseClick(int button, int state, int x, int y)
 
 	if(button == GLUT_LEFT_BUTTON)
 	{
-		printf("%d\n", (state == GLUT_DOWN));
+		//printf("%d\n", (state == GLUT_DOWN));
 		fflush(stdout);
 		is_pressed = (state == GLUT_DOWN);
 
@@ -147,12 +182,45 @@ void onMouseMove(int x, int y)
 
 	int deltaX = x - mouseX;
 	int deltaY = y - mouseY;
-
+	GLdouble theta_old;
+	GLdouble phi_old;
 
 	if(true)
 	{
-		lookX += (double) deltaX / 100;
-		lookY += (double) deltaY / 100;
+		
+		printf("THETA = %f\n", theta);
+		printf("PHI   = %f\n", phi);
+		
+		theta_old = theta;
+		phi_old = phi;
+
+		theta += (double)(deltaX * (2*M_PI / WINDOW_WIDTH));
+		phi   += (double)(deltaY * (2*M_PI / WINDOW_HEIGHT));
+
+		if (phi_old * phi < 0)
+			up *= -1;
+
+		if ((phi_old - M_PI) * (phi - M_PI) < 0)
+			up *= -1;
+
+		if ((phi_old - 2*M_PI) * (phi - 2*M_PI) < 0)
+			up *= -1;			
+
+		theta = fmod(theta, 2 * M_PI);
+		phi = fmod(phi, 2 * M_PI);
+
+		if (phi < 0)
+			phi += 2*M_PI;
+
+		/*if (theta > (2*M_PI))
+			theta -= 2*M_PI;
+		else if (theta < 0)
+			theta += 2*M_PI;
+
+		if (phi > (2*M_PI))
+			phi -= 2*M_PI;
+		else if (phi < 0)
+			phi += 2*M_PI;*/
 	}
 
 	mouseX += deltaX;
