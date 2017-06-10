@@ -22,12 +22,15 @@ void onDisplay();
 void onMouseClick(int button, int state, int x, int y);
 void onMouseMove(int x, int y);
 
+void drawCube(double size, Vector3d where, Vector3d color);
+
+
 // Parametrização em coordenadas esféricas
 GLdouble r = 5; // Distância do entre o observador (camera) e o ponto
 GLdouble theta = 0.0; // Angulo em torno do eixo Y
 GLdouble phi   = 0.0; // Angulo em torno do eixo X relativo a camera
 
-GLdouble turn_speed = 0.5;
+GLdouble turn_speed = 0.4;
 GLdouble move_speed = 0.1;
 GLdouble move_direction = 0;
 
@@ -105,6 +108,7 @@ void onDisplay()
 	*/
 
 
+	// Desenha os eixos XYZ
 	glLineWidth(1);
 	glColor3f(1.0, 0.0, 0.0);
 	glBegin(GL_LINES);
@@ -125,22 +129,22 @@ void onDisplay()
 	glEnd();
 
 
-	// Desenha o cubo vermelho de tamanho 1, na posicao (0, 0, 0)
-	glColor3f(0.0f, 0.0f, 0.0f);
-	glutWireCube(1.0);
+	// Desenha o cubo do jogador
+	// TODO mudar para a funcao que desenha o modelo
+	drawCube(0.5, player, {0,0,1});
 
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glutSolidCube(1.0);
+	// Desenha um cubo em cada octeto
+	drawCube(1, { 1, 1, 1}, {0.1, 0.1, 0.1});
+	drawCube(1, { 1, 1,-1}, {0.1, 0.1, 1.0});
+	drawCube(1, { 1,-1, 1}, {0.1, 1.0, 0.1});
+	drawCube(1, { 1,-1,-1}, {0.1, 1.0, 1.0});
+	drawCube(1, {-1, 1, 1}, {1.0, 0.1, 0.1});
+	drawCube(1, {-1, 1,-1}, {1.0, 0.1, 1.0});
+	drawCube(1, {-1,-1, 1}, {1.0, 1.0, 0.1});
+	drawCube(1, {-1,-1,-1}, {1.0, 1.0, 1.0});
 
 
-	// Desenha o cubo azul na posicao em que a camera esta olhando
-	glTranslatef(player.x, player.y, player.z);
 
-	glColor3f(0.0f, 0.0f, 0.0f);
-	glutWireCube(0.5);
-
-	glColor3f(0.0f, 0.0f, 1.0f);
-	glutSolidCube(0.5);
 
 	glutSwapBuffers();
 }
@@ -188,4 +192,22 @@ void onMouseMove(int x, int y)
 	{
 		glutWarpPointer(centerX, centerY);
 	}
+}
+
+
+
+void drawCube(double size, Vector3d where, Vector3d color)
+{
+	glPushMatrix();
+
+	glTranslated(where.x, where.y, where.z);
+
+	glColor3d(0, 0, 0);
+	glutWireCube(size);
+
+	// Nao vou fazer outra struct so pra botar rgb em vez de xyz
+	glColor3d(color.x, color.y, color.z);
+	glutSolidCube(size);
+
+	glPopMatrix();
 }
