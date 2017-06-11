@@ -5,7 +5,6 @@
 #include "bibutil.h"
 #include "Vector3d.h"
 
-
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
@@ -19,12 +18,11 @@ void onDisplay();
 void onMouseClick(int button, int state, int x, int y);
 void onMouseMove(int x, int y);
 void drawCube(double size, Vector3d where, Vector3d color);
-void DefineIluminacao (void);
 void Inicializa (void);
 void drawObj();
 
 // Parametrização em coordenadas esféricas
-GLdouble r = 15; // Distância do entre o observador (camera) e o ponto
+GLdouble r = 10; // Distância do entre o observador (camera) e o ponto
 GLdouble theta = 0.0; // Angulo em torno do eixo Y
 GLdouble phi   = 0.0; // Angulo em torno do eixo X relativo a camera
 
@@ -66,13 +64,11 @@ int main(int argc, char **argv)
 }
 
 
-
 void onTimerTick(int step)
 {
 	glutPostRedisplay();
 	glutTimerFunc(FRAME_TIME, onTimerTick, step + 1);
 }
-
 
 
 void onDisplay()
@@ -123,11 +119,6 @@ void onDisplay()
 		glVertex3f(0.0, 0.0, 100.0);
 	glEnd();
 
-
-	// Desenha o cubo do jogador
-	// TODO mudar para a funcao que desenha o modelo
-	//drawCube(0.5, player, {0,0,1});
-
 	// Define a cor azul para desenhar o objeto
 	glColor3f(0.0f, 0.0f, 1.0f);
 	drawObj();
@@ -175,8 +166,8 @@ void onMouseMove(int x, int y)
 	int deltaX = x - centerX;
 	int deltaY = y - centerY;
 
-	printf("THETA = %f\n", theta);
-	printf("PHI   = %f\n", phi);
+	//printf("THETA = %f\n", theta);
+	//printf("PHI   = %f\n", phi);
 
 	theta -= turn_speed * deltaX * (2*M_PI / WINDOW_WIDTH);
 	phi   -= turn_speed * deltaY * (2*M_PI / WINDOW_HEIGHT);
@@ -209,51 +200,21 @@ void drawCube(double size, Vector3d where, Vector3d color)
 
 void drawObj()
 {
-	// translada para a posição que está sendo movida
-	glTranslatef(player.x, player.y, player.z);
-	
-	// deixa o modelo em pé
-	glRotatef(90, 1.0, 0.0, 0.0);
+
+	glTranslatef(player.x, player.y, player.z);	// translada para a posição que está sendo movida
+	glRotatef(90, 1.0, 0.0, 0.0);				// deixa o modelo em pé
 	
 	DesenhaObjeto(objeto);
-	
+
 	glRotatef(-90, 1.0, 0.0, 0.0);
 	glTranslatef(-player.x, -player.y, -player.z);
-}
-
-void DefineIluminacao (void)
-{
-	GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0};
-	GLfloat luzDifusa[4]={1.0,1.0,1.0,1.0};	   	// "cor"
-	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};	// "brilho"
-	GLfloat posicaoLuz[4]={0.0, 10.0, 100.0, 1.0};
-
-	// Capacidade de brilho do material
-	GLfloat especularidade[4]={1.0,1.0,1.0,1.0};
-	GLint especMaterial = 60;
-
-	// Define a refletância do material
-	glMaterialfv(GL_FRONT,GL_SPECULAR, especularidade);
-	// Define a concentração do brilho
-	glMateriali(GL_FRONT,GL_SHININESS,especMaterial);
-
-	// Ativa o uso da luz ambiente
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
-
-	// Define os parâmetros da luz de número 0
-	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
-	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
-	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
 }
 
 // Função responsável por inicializar parâmetros e variáveis
 void Inicializa (void)
 {
-	//char nomeArquivo[30];
-
 	// Define a cor de fundo da janela de visualização como branca
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// Habilita a definição da cor do material a partir da cor corrente
 	glEnable(GL_COLOR_MATERIAL);
@@ -263,12 +224,12 @@ void Inicializa (void)
 	glEnable(GL_LIGHT0);
 	// Habilita o depth-buffering
 	glEnable(GL_DEPTH_TEST);
-
 	// Habilita o modelo de tonalização de Gouraud
 	glShadeModel(GL_SMOOTH);
 
 	// Carrega o objeto 3D
 	objeto = CarregaObjeto("models/cow-nonormals.obj",true);
+
     printf("Objeto carregado!");
 
 	// E calcula o vetor normal em cada face
