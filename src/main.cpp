@@ -3,6 +3,7 @@
 #include <math.h>
 #include <GL/glut.h>
 #include "bibutil.h"
+#include "Vector3d.h"
 
 
 #define WINDOW_WIDTH 800
@@ -20,9 +21,10 @@ void onMouseMove(int x, int y);
 void drawCube(double size, Vector3d where, Vector3d color);
 void DefineIluminacao (void);
 void Inicializa (void);
+void drawObj();
 
 // Parametrização em coordenadas esféricas
-GLdouble r = 5; // Distância do entre o observador (camera) e o ponto
+GLdouble r = 15; // Distância do entre o observador (camera) e o ponto
 GLdouble theta = 0.0; // Angulo em torno do eixo Y
 GLdouble phi   = 0.0; // Angulo em torno do eixo X relativo a camera
 
@@ -124,11 +126,11 @@ void onDisplay()
 
 	// Desenha o cubo do jogador
 	// TODO mudar para a funcao que desenha o modelo
-	drawCube(0.5, player, {0,0,1});
+	//drawCube(0.5, player, {0,0,1});
 
 	// Define a cor azul para desenhar o objeto
-	//glColor3f(0.0f, 0.0f, 1.0f);
-	//DesenhaObjeto(objeto, player);
+	glColor3f(0.0f, 0.0f, 1.0f);
+	drawObj();
 
 	// Desenha um cubo em cada octeto
 	drawCube(1, { 1, 1, 1}, {0.1, 0.1, 0.1});
@@ -189,8 +191,6 @@ void onMouseMove(int x, int y)
 	}
 }
 
-
-
 void drawCube(double size, Vector3d where, Vector3d color)
 {
 	glPushMatrix();
@@ -207,6 +207,20 @@ void drawCube(double size, Vector3d where, Vector3d color)
 	glPopMatrix();
 }
 
+void drawObj()
+{
+	// translada para a posição que está sendo movida
+	glTranslatef(player.x, player.y, player.z);
+	
+	// deixa o modelo em pé
+	glRotatef(90, 1.0, 0.0, 0.0);
+	
+	DesenhaObjeto(objeto);
+	
+	glRotatef(-90, 1.0, 0.0, 0.0);
+	glTranslatef(-player.x, -player.y, -player.z);
+}
+
 void DefineIluminacao (void)
 {
 	GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0};
@@ -217,7 +231,6 @@ void DefineIluminacao (void)
 	// Capacidade de brilho do material
 	GLfloat especularidade[4]={1.0,1.0,1.0,1.0};
 	GLint especMaterial = 60;
-	
 
 	// Define a refletância do material
 	glMaterialfv(GL_FRONT,GL_SPECULAR, especularidade);
@@ -253,19 +266,6 @@ void Inicializa (void)
 
 	// Habilita o modelo de tonalização de Gouraud
 	glShadeModel(GL_SMOOTH);
-
-	// Inicializa a variável que especifica o ângulo da projeção
-	// perspectiva
-	//##angle=55;
-
-	// Inicializa as variáveis usadas para alterar a posição do
-	// observador virtual
-	//##obsX = obsY = 0;
-	//##obsZ = 8;
-
-	// Lê o nome do arquivo e chama a rotina de leitura
-	//printf("Digite o nome do arquivo que contem o modelo 3D: ");
-	//gets(nomeArquivo);
 
 	// Carrega o objeto 3D
 	objeto = CarregaObjeto("models/cow-nonormals.obj",true);

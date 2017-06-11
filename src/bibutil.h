@@ -17,8 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
-#include "Vector3d.h"
-
 
 /*
 extern "C" {
@@ -100,7 +98,7 @@ void RotaX(VERT &in, VERT &out, float ang);
 OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap);
 void CriaDisplayList(OBJ *obj);
 void DesabilitaDisplayList(OBJ *ptr);
-void DesenhaObjeto(OBJ *obj, Vector3d pos);
+void DesenhaObjeto(OBJ *obj);
 void SetaModoDesenho(char modo);
 
 // Funções para liberação de memória

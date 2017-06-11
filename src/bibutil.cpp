@@ -28,7 +28,6 @@
 #include <vector>
 #include "bibutil.h"
 
-
 #define DEBUG
 
 using namespace std;
@@ -640,7 +639,7 @@ void SetaModoDesenho(char modo)
 }
 
 // Desenha um objeto 3D passado como parâmetro.
-void DesenhaObjeto(OBJ *obj, Vector3d pos)
+void DesenhaObjeto(OBJ *obj)
 {
 	int i;	// contador
 	GLint ult_texid, texid;	// última/atual textura
