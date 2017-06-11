@@ -28,8 +28,8 @@ GLdouble r = 15; // Distância do entre o observador (camera) e o ponto
 GLdouble theta = 0.0; // Angulo em torno do eixo Y
 GLdouble phi   = 0.0; // Angulo em torno do eixo X relativo a camera
 
-GLdouble turn_speed = 0.4;
-GLdouble move_speed = 0.1;
+const GLdouble turn_speed = 0.4;
+const GLdouble move_speed = 0.3;
 GLdouble move_direction = 0;
 
 Vector3d player = {0, 0, 0};
@@ -133,14 +133,17 @@ void onDisplay()
 	drawObj();
 
 	// Desenha um cubo em cada octeto
-	drawCube(1, { 1, 1, 1}, {0.1, 0.1, 0.1});
-	drawCube(1, { 1, 1,-1}, {0.1, 0.1, 1.0});
-	drawCube(1, { 1,-1, 1}, {0.1, 1.0, 0.1});
-	drawCube(1, { 1,-1,-1}, {0.1, 1.0, 1.0});
-	drawCube(1, {-1, 1, 1}, {1.0, 0.1, 0.1});
-	drawCube(1, {-1, 1,-1}, {1.0, 0.1, 1.0});
-	drawCube(1, {-1,-1, 1}, {1.0, 1.0, 0.1});
-	drawCube(1, {-1,-1,-1}, {1.0, 1.0, 1.0});
+	GLdouble side = 3;
+	GLdouble dist = 5;
+
+	drawCube(side, { dist, dist, dist}, {0.1, 0.1, 0.1});
+	drawCube(side, { dist, dist,-dist}, {0.1, 0.1, 1.0});
+	drawCube(side, { dist,-dist, dist}, {0.1, 1.0, 0.1});
+	drawCube(side, { dist,-dist,-dist}, {0.1, 1.0, 1.0});
+	drawCube(side, {-dist, dist, dist}, {1.0, 0.1, 0.1});
+	drawCube(side, {-dist, dist,-dist}, {1.0, 0.1, 1.0});
+	drawCube(side, {-dist,-dist, dist}, {1.0, 1.0, 0.1});
+	drawCube(side, {-dist,-dist,-dist}, {1.0, 1.0, 1.0});
 
 
 	glutSwapBuffers();
@@ -211,12 +214,12 @@ void drawObj()
 {
 	// translada para a posição que está sendo movida
 	glTranslatef(player.x, player.y, player.z);
-	
+
 	// deixa o modelo em pé
 	glRotatef(90, 1.0, 0.0, 0.0);
-	
+
 	DesenhaObjeto(objeto);
-	
+
 	glRotatef(-90, 1.0, 0.0, 0.0);
 	glTranslatef(-player.x, -player.y, -player.z);
 }
