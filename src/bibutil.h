@@ -95,7 +95,7 @@ void RotaY(VERT &in, VERT &out, float ang);
 void RotaX(VERT &in, VERT &out, float ang);
 
 // Funções para carga e desenho de objetos
-OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap);
+OBJ *CarregaObjeto(const char *nomeArquivo, bool mipmap);
 void CriaDisplayList(OBJ *obj);
 void DesabilitaDisplayList(OBJ *ptr);
 void DesenhaObjeto(OBJ *obj);
@@ -113,10 +113,10 @@ void Escreve2D(float x, float y, char *str);
 void CalculaNormaisPorFace(OBJ *obj);
 
 // Funções para manipulação de texturas e materiais
-TEX *CarregaTextura(char *arquivo, bool mipmap);
-TEX *CarregaTexturasCubo(char *arquivo, bool mipmap);
+TEX *CarregaTextura(const char *arquivo, bool mipmap);
+TEX *CarregaTexturasCubo(const char *arquivo, bool mipmap);
 void SetaFiltroTextura(GLint tex, GLint filtromin, GLint filtromag);
-MAT *ProcuraMaterial(char *nome);
+MAT *ProcuraMaterial(const char *nome);
 TEX *CarregaJPG(const char *filename, bool inverte=true);
 
 // Constantes utilizadas caso não existam em GL/gl.h
