@@ -205,10 +205,10 @@ int leNum(char **face, char *sep)
 
 // Procura um material pelo nome na lista e devolve
 // o índice onde está, ou -1 se não achar
-int _procuraMaterial(char *nome)
+int _procuraMaterial(const char *nome)
 {
 	unsigned int i;
-	for(i=0;i<_materiais.size();++i)
+	for(i=0;i < _materiais.size();++i)
 		if(!strcmp(nome,_materiais[i]->nome))
 			return i;
 	return -1;
@@ -216,7 +216,7 @@ int _procuraMaterial(char *nome)
 
 // Procura um material pelo nome e devolve um
 // apontador para ele ou NULL caso não ache
-MAT *ProcuraMaterial(char *nome)
+MAT *ProcuraMaterial(const char *nome)
 {
 	int pos = _procuraMaterial(nome);
 	if(pos == -1) return NULL;
@@ -331,15 +331,16 @@ void _leMateriais(char *nomeArquivo)
 //
 // O parâmetro mipmap indica se deve-se gerar mipmaps a partir
 // das texturas (se houver)
-OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
+OBJ *CarregaObjeto(const char *nomeArquivo, bool mipmap)
 {
+	(void) mipmap;
 	int i;
 	int vcont,ncont,fcont,tcont;
 	int material, texid;
 	char aux[256];
-	TEX *ptr;
-	FILE *fp;
-	OBJ *obj;
+	TEX *ptr = NULL;
+	FILE *fp = NULL;
+	OBJ *obj = NULL;
 
 	fp = fopen(nomeArquivo, "r");  // abre arquivo texto para leitura
 
@@ -606,7 +607,7 @@ OBJ *CarregaObjeto(char *nomeArquivo, bool mipmap)
 			if(tem_t) obj->faces[fcont].tex  = (int *) malloc(sizeof(int)*nv);
 				else obj->faces[fcont].tex = NULL;
 			// Copia os índices dos arrays temporários para a face
-			for(i=0;i<nv;++i)
+			for(i=0;i < nv;++i)
 			{
 				// Subtraímos -1 dos índices porque o formato OBJ começa
 				// a contar a partir de 1, não 0
@@ -674,7 +675,7 @@ void DesenhaObjeto(OBJ *obj)
 	// (por enquanto, nenhuma)
 	ult_texid = -1;
 	// Varre todas as faces do objeto
-	for(i=0; i<obj->numFaces; i++)
+	for(i=0; i < obj->numFaces; i++)
 	{
 		// Usa normais calculadas por face (flat shading) se
 		// o objeto não possui normais por vértice
@@ -721,7 +722,7 @@ void DesenhaObjeto(OBJ *obj)
 		// Inicia a face
 		glBegin(prim);
 		// Para todos os vértices da face
-		for(int vf=0; vf<obj->faces[i].nv;++vf)
+		for(int vf=0; vf < obj->faces[i].nv;++vf)
 		{
 			// Se houver normais definidas para cada vértice,
 			// envia a normal correspondente
@@ -770,7 +771,7 @@ void _liberaObjeto(OBJ *obj)
 	if (obj->normais != NULL)   free(obj->normais);
 	if (obj->texcoords != NULL) free(obj->texcoords);
 	// Para cada face...
-	for(int i=0; i<obj->numFaces;++i)
+	for(int i=0; i < obj->numFaces;++i)
 	{
 		// Libera as listas de vértices da face
 		if (obj->faces[i].vert != NULL) free(obj->faces[i].vert);
@@ -791,7 +792,7 @@ void LiberaObjeto(OBJ *obj)
 	unsigned int o;
 	if(obj==NULL)	// se for NULL, libera todos os objetos
 	{
-		for(o=0;o<_objetos.size();++o)
+		for(o=0;o < _objetos.size();++o)
 			_liberaObjeto(_objetos[o]);
 		_objetos.clear();
 	}
@@ -799,7 +800,7 @@ void LiberaObjeto(OBJ *obj)
 	{
 		// Procura pelo objeto no vector
 		vector<OBJ*>::iterator it = _objetos.begin();
-		for(it = _objetos.begin(); it<_objetos.end(); ++it)
+		for(it = _objetos.begin(); it < _objetos.end(); ++it)
 			// e sai do loop quando encontrar
 			if(*it == obj)
 				break;
@@ -815,10 +816,10 @@ void LiberaMateriais()
 {
 	unsigned int i;
 #ifdef DEBUG
-	printf("Total de materiais: %d\n",_materiais.size());
+	printf("Total de materiais: %d\n",(int) _materiais.size());
 #endif
 	// Para cada material
-	for(i=0;i<_materiais.size();++i)
+	for(i=0;i < _materiais.size();++i)
 	{
 #ifdef DEBUG
 		printf("%s a: (%f,%f,%f,%f) - d: (%f,%f,%f,%f) - e: (%f,%f,%f,%f - %f)\n",_materiais[i]->nome,
@@ -833,10 +834,10 @@ void LiberaMateriais()
 	// Limpa lista
 	_materiais.clear();
 #ifdef DEBUG
-	printf("Total de texturas: %d\n",_texturas.size());
+	printf("Total de texturas: %d\n",(int) _texturas.size());
 #endif
 	// Para cada textura
-	for(i=0;i<_texturas.size();++i)
+	for(i=0;i < _texturas.size();++i)
 	{
 		// Libera textura - não é necessário liberar a imagem, pois esta já
 		// foi liberada durante a carga da textura - ver CarregaTextura
@@ -861,13 +862,13 @@ void CalculaNormaisPorFace(OBJ *obj)
 			return;
 	// Varre as faces e calcula a normal, usando os 3 primeiros vértices de
 	// cada uma
-	for(i=0; i<obj->numFaces; i++)
+	for(i=0; i < obj->numFaces; i++)
 	VetorNormal(obj->vertices[obj->faces[i].vert[0]],
 		obj->vertices[obj->faces[i].vert[1]],
 		obj->vertices[obj->faces[i].vert[2]],obj->normais[i]);
 }
 
-char *nomes[] = {
+const char *nomes[] = {
 		"posx", "negx", "posy", "negy", "posz", "negz" };
 
 // Desabilita a geração de uma display list
@@ -904,7 +905,7 @@ void CriaDisplayList(OBJ *ptr)
 {
 	if(ptr==NULL)
 	{
-		for(unsigned int i=0;i<_objetos.size();++i)
+		for(unsigned int i=0;i < _objetos.size();++i)
 		{
 			ptr = _objetos[i];
 			// Pula os objetos que não devem usar dlists
