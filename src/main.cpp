@@ -2,8 +2,7 @@
 #include <cstdio>
 #include <math.h>
 #include <GL/glut.h>
-#include "Vector3d.h"
-
+#include "bibutil.h"
 
 
 #define WINDOW_WIDTH 800
@@ -12,18 +11,15 @@
 const GLdouble ASPECT = (GLdouble) WINDOW_WIDTH / WINDOW_HEIGHT;
 const int CENTER_X = WINDOW_WIDTH / 2;
 const int CENTER_Y = WINDOW_HEIGHT / 2;
-
 const int FRAME_TIME = 1000 / 30;
-
-
 
 void onTimerTick(int step);
 void onDisplay();
 void onMouseClick(int button, int state, int x, int y);
 void onMouseMove(int x, int y);
-
 void drawCube(double size, Vector3d where, Vector3d color);
-
+void DefineIluminacao (void);
+void Inicializa (void);
 
 // Parametrização em coordenadas esféricas
 GLdouble r = 5; // Distância do entre o observador (camera) e o ponto
@@ -36,7 +32,9 @@ GLdouble move_direction = 0;
 
 Vector3d player = {0, 0, 0};
 
+OBJ *objeto; // Objeto a ser carregado
 
+// Função responsável pela especificação dos parâmetros de iluminação
 
 int main(int argc, char **argv)
 {
@@ -56,6 +54,9 @@ int main(int argc, char **argv)
 	glutMouseFunc(onMouseClick);
 	glutMotionFunc(onMouseMove);
 	glutPassiveMotionFunc(onMouseMove);
+
+	// Chama a função responsável por fazer as inicializações
+	Inicializa();
 
 	glutMainLoop();
 
@@ -99,14 +100,6 @@ void onDisplay()
 			player.x, player.y, player.z,
 			cam_up.x, cam_up.y , cam_up.z);
 
-    /*
-	printf("theta = %f\n", theta);
-    printf("phi   = %f\n", phi);
-    printf("x     = %f\n", r*sin(phi)*cos(theta));
-	printf("y     = %f\n", r*sin(phi)*sin(theta));
-    printf("z     = %f\n", r*cos(theta));
-	*/
-
 
 	// Desenha os eixos XYZ
 	glLineWidth(1);
@@ -133,6 +126,10 @@ void onDisplay()
 	// TODO mudar para a funcao que desenha o modelo
 	drawCube(0.5, player, {0,0,1});
 
+	// Define a cor azul para desenhar o objeto
+	//glColor3f(0.0f, 0.0f, 1.0f);
+	//DesenhaObjeto(objeto, player);
+
 	// Desenha um cubo em cada octeto
 	drawCube(1, { 1, 1, 1}, {0.1, 0.1, 0.1});
 	drawCube(1, { 1, 1,-1}, {0.1, 0.1, 1.0});
@@ -142,8 +139,6 @@ void onDisplay()
 	drawCube(1, {-1, 1,-1}, {1.0, 0.1, 1.0});
 	drawCube(1, {-1,-1, 1}, {1.0, 1.0, 0.1});
 	drawCube(1, {-1,-1,-1}, {1.0, 1.0, 1.0});
-
-
 
 
 	glutSwapBuffers();
@@ -210,4 +205,78 @@ void drawCube(double size, Vector3d where, Vector3d color)
 	glutSolidCube(size);
 
 	glPopMatrix();
+}
+
+void DefineIluminacao (void)
+{
+	GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0};
+	GLfloat luzDifusa[4]={1.0,1.0,1.0,1.0};	   	// "cor"
+	GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};	// "brilho"
+	GLfloat posicaoLuz[4]={0.0, 10.0, 100.0, 1.0};
+
+	// Capacidade de brilho do material
+	GLfloat especularidade[4]={1.0,1.0,1.0,1.0};
+	GLint especMaterial = 60;
+	
+
+	// Define a refletância do material
+	glMaterialfv(GL_FRONT,GL_SPECULAR, especularidade);
+	// Define a concentração do brilho
+	glMateriali(GL_FRONT,GL_SHININESS,especMaterial);
+
+	// Ativa o uso da luz ambiente
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
+
+	// Define os parâmetros da luz de número 0
+	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
+	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
+	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
+}
+
+// Função responsável por inicializar parâmetros e variáveis
+void Inicializa (void)
+{
+	//char nomeArquivo[30];
+
+	// Define a cor de fundo da janela de visualização como branca
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	// Habilita a definição da cor do material a partir da cor corrente
+	glEnable(GL_COLOR_MATERIAL);
+	//Habilita o uso de iluminação
+	glEnable(GL_LIGHTING);
+	// Habilita a luz de número 0
+	glEnable(GL_LIGHT0);
+	// Habilita o depth-buffering
+	glEnable(GL_DEPTH_TEST);
+
+	// Habilita o modelo de tonalização de Gouraud
+	glShadeModel(GL_SMOOTH);
+
+	// Inicializa a variável que especifica o ângulo da projeção
+	// perspectiva
+	//##angle=55;
+
+	// Inicializa as variáveis usadas para alterar a posição do
+	// observador virtual
+	//##obsX = obsY = 0;
+	//##obsZ = 8;
+
+	// Lê o nome do arquivo e chama a rotina de leitura
+	//printf("Digite o nome do arquivo que contem o modelo 3D: ");
+	//gets(nomeArquivo);
+
+	// Carrega o objeto 3D
+	objeto = CarregaObjeto("models/cow-nonormals.obj",true);
+    printf("Objeto carregado!");
+
+	// E calcula o vetor normal em cada face
+	if(objeto->normais)
+	{
+		// Se já existirem normais no arquivo, apaga elas
+		free(objeto->normais);
+		objeto->normais_por_vertice = false;
+	}
+	CalculaNormaisPorFace(objeto);
 }
